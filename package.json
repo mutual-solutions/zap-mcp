@@ -1,0 +1,49 @@
+{
+  "name": "zap-mcp",
+  "version": "0.1.0",
+  "description": "KiCad PCB autorouter MCP server (Zap!): route a placed .kicad_pcb and get a JSON manufacturability report (DRC, shorts, JLCPCB capability, copper heat). Keyless trial for small boards.",
+  "type": "module",
+  "bin": {
+    "zap-mcp": "bin/zap-mcp.js"
+  },
+  "main": "bin/zap-mcp.js",
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "mcpName": "io.github.mutual-solutions/zap-mcp",
+  "keywords": [
+    "kicad",
+    "pcb",
+    "autorouter",
+    "autorouting",
+    "mcp",
+    "model-context-protocol",
+    "jlcpcb",
+    "drc",
+    "eda",
+    "ai-agent",
+    "freerouting-alternative"
+  ],
+  "homepage": "https://zap.mutual.solutions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mutual-solutions/zap-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mutual-solutions/zap-mcp/issues",
+    "email": "hello@mutual.solutions"
+  },
+  "author": "Mutual Solutions, Inc. <hello@mutual.solutions>",
+  "license": "MIT",
+  "scripts": {
+    "test": "node test/smoke.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.31.0"
+  }
+}

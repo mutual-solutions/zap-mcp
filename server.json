@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.mutual-solutions/zap-mcp",
+  "title": "Zap! KiCad autorouter",
+  "description": "KiCad PCB autorouter: route a placed board, get a JSON report (DRC, shorts, JLCPCB, copper heat)",
+  "websiteUrl": "https://zap.mutual.solutions",
+  "repository": {
+    "url": "https://github.com/mutual-solutions/zap-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "zap-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ZAP_API_KEY_FILE",
+          "description": "Path to a file holding the Zap! API key (sign in at https://zap.mutual.solutions/auth/login). Optional: without a key, try_route_board routes small boards.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "ZAP_API_KEY",
+          "description": "The Zap! API key itself, instead of ZAP_API_KEY_FILE.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "ZAP_URL",
+          "description": "Service address (https only).",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "https://zap.mutual.solutions"
+        }
+      ]
+    }
+  ]
+}
