@@ -1,8 +1,8 @@
-# zap-mcp
+# zap-pcb-mcp
 
 KiCad PCB autorouter for AI agents: MCP server, HTTP API and CLI, with a JSON manufacturability report (DRC, shorts, JLCPCB capability, copper heat).
 
-`zap-mcp` is the stdio MCP server for [Zap!](https://zap.mutual.solutions), a hosted auto-router by mutual. You give it a
+`zap-pcb-mcp` is the stdio MCP server for [Zap!](https://zap.mutual.solutions), a hosted auto-router by mutual. You give it a
 placed `.kicad_pcb` (with its `.kicad_pro`); it returns the same board with tracks, vias and copper pours added, plus a
 report of what is still wrong and where. Node 18 or newer. The board is routed on the Zap! service, not on your machine.
 
@@ -13,7 +13,7 @@ Early access: every routed board must be reviewed by an engineer, and KiCad's DR
 ### Claude Code
 
 ```bash
-claude mcp add zap -e ZAP_API_KEY_FILE=$HOME/zap-key.txt -- npx -y zap-mcp
+claude mcp add zap -e ZAP_API_KEY_FILE=$HOME/zap-key.txt -- npx -y zap-pcb-mcp
 ```
 
 Restart the agent session: the tools appear only after the restart.
@@ -25,7 +25,7 @@ Restart the agent session: the tools appear only after the restart.
   "mcpServers": {
     "zap": {
       "command": "npx",
-      "args": ["-y", "zap-mcp"],
+      "args": ["-y", "zap-pcb-mcp"],
       "env": { "ZAP_API_KEY_FILE": "/absolute/path/to/zap-key.txt" }
     }
   }
@@ -55,7 +55,7 @@ layers, 2 trial jobs per network address per UTC day, stable router only. Every 
 none is set, with how to get one and that the trial exists.
 
 ```bash
-claude mcp add zap -- npx -y zap-mcp
+claude mcp add zap -- npx -y zap-pcb-mcp
 ```
 
 Then ask your agent to route a board, for example: "Route ~/boards/myboard.kicad_pcb with Zap!".

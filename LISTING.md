@@ -5,15 +5,15 @@ are public. Both directories read the README from the repository as the long des
 
 ## Common fields
 
-- Name: Zap! KiCad autorouter (package `zap-mcp`)
+- Name: Zap! KiCad autorouter (npm package `zap-pcb-mcp`)
 - One line: KiCad PCB autorouter for AI agents, with a JSON manufacturability report.
 - Description (under 300 characters):
   Route a placed KiCad board (.kicad_pcb) on the hosted Zap! auto-router and get it back with tracks, vias and copper
   pours, plus a JSON report: missing connections, DRC errors, shorts, JLCPCB capability and copper heat. Free trial for
   small boards with no key.
-- Install: `npx -y zap-mcp` (stdio). Key: `ZAP_API_KEY_FILE` or `ZAP_API_KEY`; optional (keyless trial without it).
+- Install: `npx -y zap-pcb-mcp` (stdio). Key: `ZAP_API_KEY_FILE` or `ZAP_API_KEY`; optional (keyless trial without it).
 - Repository: https://github.com/mutual-solutions/zap-mcp
-- npm: https://www.npmjs.com/package/zap-mcp
+- npm: https://www.npmjs.com/package/zap-pcb-mcp
 - Website: https://zap.mutual.solutions
 - Docs for agents: https://zap.mutual.solutions/agents.md and https://zap.mutual.solutions/llms.txt
 - Licence: MIT
