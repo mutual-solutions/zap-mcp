@@ -105,8 +105,11 @@ zcurl -o myboard.routed.kicad_pcb $URL/v1/jobs/$ID/result                       
 ```
 
 The trial without a key: `curl -s -H 'X-Zap-Try: 1' -F board=@myboard.kicad_pcb -F project=@myboard.kicad_pro
-$URL/v1/try/jobs` answers with an `id` and a `token` (shown once); read the job at `/v1/try/jobs/$ID` with the header
-`X-Zap-Try-Token: <token>`. Fetch `report.json` before `result`: the first download of the board deletes the job's files.
+$URL/v1/try/jobs` answers with an `id`, a `token` (shown once) and the job's URLs (`status_url`, `report_json_url`,
+`layer_svg_example_url`, `result_url`); send the header `X-Zap-Try-Token: <token>` on each. `POST /v1/check` needs a key;
+the trial submission runs the same checks. Fetch `report.json` and the copper pictures it lists in `image.layers[].url`
+(`/v1/try/jobs/$ID/report/F_Cu.svg`, `.../B_Cu.svg`) before `result`: the first download of the board deletes the job's
+files.
 
 Every endpoint, field and error: [openapi.json](https://zap.mutual.solutions/openapi.json),
 [llms.txt](https://zap.mutual.solutions/llms.txt), [error catalog](https://zap.mutual.solutions/v1/errors),

@@ -1,6 +1,6 @@
 {
   "name": "zap-pcb-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "KiCad PCB autorouter MCP server (Zap!): route a placed .kicad_pcb and get a JSON manufacturability report (DRC, shorts, JLCPCB capability, copper heat). Keyless trial for small boards.",
   "type": "module",
   "bin": {

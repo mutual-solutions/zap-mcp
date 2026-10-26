@@ -228,7 +228,6 @@ async function saveResult(a, st, res, { prefix, headers }) {
   fs.writeFileSync(rpath, JSON.stringify(rep, null, 1));
   res.report_file = rpath;
   let layers = (rep.image || {}).layers || [];
-  // a trial job has no copper pictures (a trial visitor's board is never drawn on the server): nothing to fetch
   for (const lay of layers) { // one picture per copper layer
     const p = `${obase}.${lay.name.replace(/\./g, "_")}.svg`;
     let url = lay.url;
@@ -440,7 +439,7 @@ const TRY_TOKEN_ARG = { try_token: { type: "string", description: "Only for a tr
 
 const TOOLS = [
   { name: "check_board", fn: toolCheckBoard,
-    description: "Pre-flight check of a KiCad board with Zap! (seconds, no routing, uses no job quota): lists every problem that would stop the job (blockers) and what would weaken it (warnings), with references, positions and the KiCad fix. Run this first.",
+    description: "Pre-flight check of a KiCad board with Zap! (seconds, no routing, uses no job quota): lists every problem that would stop the job (blockers) and what would weaken it (warnings), with references, positions and the KiCad fix. Run this first when an API key is set; it needs one. Without a key, use try_route_board, which runs the same checks when it submits.",
     inputSchema: { type: "object", properties: FILES, required: ["board_path"] } },
   { name: "route_board", fn: toolRouteBoard,
     description: "Route a placed KiCad board with Zap!: pre-flight check, submit (uses one of the key's daily jobs), wait (seconds for small boards, up to 60 minutes), download BOARD.routed.kicad_pcb next to the input (with copies of BOARD.kicad_pro/.kicad_dru so KiCad uses the same rules), delete the server copy. Returns the numbers to show the human; all are lower-is-better. The result needs a human review and KiCad DRC before fabrication.",
@@ -503,8 +502,9 @@ const KEYED = new Set(["check_board", "route_board", "list_jobs", "send_feedback
 
 const server = new Server({ name: "zap", version: VERSION }, {
   capabilities: { tools: {} },
-  instructions: "Zap! routes placed KiCad boards. Use check_board first, then route_board. " +
-    "Without a Zap! API key, try_route_board routes one small board (at most 300 pads, 2 or 4 copper layers) with no sign-up. " +
+  instructions: "Zap! routes placed KiCad boards. With a Zap! API key: check_board first, then route_board. " +
+    "Without a key: use try_route_board, which routes one small board (at most 300 pads, 2 or 4 copper layers) with no " +
+    "sign-up and runs the same checks as check_board when it submits (check_board itself needs a key). " +
     "Report the numbers it returns to the human (lower is better) and end with: " + REVIEW + " " +
     FEEDBACK_RULE + " " + URL_BASE + "/agents.md",
 });
