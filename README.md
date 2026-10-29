@@ -69,7 +69,7 @@ https://zap.mutual.solutions/agents.md apply to both.
 | tool | key | what it does |
 |---|---|---|
 | `check_board` | yes | Pre-flight check (seconds, no routing, no job quota): every problem that would stop the job (blockers) and what would weaken it (warnings), with references, positions and the KiCad fix. |
-| `route_board` | yes | Check, submit, wait, then save `BOARD.routed.kicad_pcb`, the full report `BOARD.routed.zap-report.json`, one SVG per copper layer and copies of `BOARD.kicad_pro` / `.kicad_dru`; then delete the server copy. |
+| `route_board` | yes | Check, submit, wait, then save `BOARD.routed.kicad_pcb`, the full report `BOARD.routed.zap-report.json`, one SVG per copper layer and copies of `BOARD.kicad_pro` / `.kicad_dru`; then delete the server copy. An EasyEDA Pro 3.x+ project (`.epro`, `.epro2`, `.eprj`, one PCB) is sent alone and comes back as `BOARD.routed.epro` (same format: your file plus only Zap!'s copper; rebuild the pours in EasyEDA Pro before its DRC). EasyEDA Standard `.json` and Pro 2.x projects are refused for now. |
 | `try_route_board` | no | The same as `route_board` on the free trial (limits above). The trial deletes the job's files on the server right after the routed board is downloaded. |
 | `get_report` | yes* | Every missing connection, design-rule error, JLC violation, hot spot and leftover copper, with position (mm), layer, net and what to do in KiCad. |
 | `get_job` | yes* | Status and result numbers of a job; `download_to` saves the routed board. |
