@@ -123,8 +123,9 @@ function readFile(p, what) {
   }
 }
 
-/** EasyEDA Pro project files Zap! routes and returns in their own format (the service tells them apart by content). */
-const EASYEDA_EXT = [".epro2", ".epro", ".eprj2", ".eprj"];
+/** EasyEDA files Zap! routes and returns in their own format (the service tells them apart by content): Pro projects and
+ *  Standard PCB documents (.json). */
+const EASYEDA_EXT = [".epro2", ".epro", ".eprj2", ".eprj", ".json"];
 const easyedaExt = (p) => EASYEDA_EXT.find((e) => String(p || "").toLowerCase().endsWith(e)) || null;
 /** The board path without its extension (.kicad_pcb or an EasyEDA project extension). */
 const boardBase = (p) => { const e = easyedaExt(p); return e ? p.slice(0, -e.length) : p.endsWith(".kicad_pcb") ? p.slice(0, -".kicad_pcb".length) : p; };
@@ -135,7 +136,7 @@ function upload(a, { trial = false } = {}) {
   const board = a.board_path || "";
   const ee = easyedaExt(board);
   if (!board.endsWith(".kicad_pcb") && !ee)
-    throw new ZapError(0, { error: "local_file", message: "board_path must be a .kicad_pcb file or an EasyEDA Pro project (.epro, .epro2, .eprj)" });
+    throw new ZapError(0, { error: "local_file", message: "board_path must be a .kicad_pcb file, an EasyEDA Pro project (.epro, .epro2, .eprj) or an EasyEDA Standard PCB .json" });
   if (ee && trial)
     throw new ZapError(0, { error: "local_file", message: "the free trial routes KiCad boards only: route an EasyEDA project with route_board (needs a key)" });
   const base = boardBase(expand(board));
@@ -289,9 +290,11 @@ async function saveResult(a, st, res, { prefix, headers }) {
 }
 
 async function toolRouteBoard(a) {
+  let findings = null;
   if (a.check ?? true) {
     const [r, text] = await toolCheckBoard(a);
     if (!r.ok) return [{ submitted: false, check: r }, "Not submitted: the pre-flight check found problems.\n" + text];
+    findings = ((r.board || {}).easyeda || {}).conversion_findings || null;
   }
   const { form } = upload(a);
   const job = await call("POST", "/v1/jobs", { body: form });
@@ -300,6 +303,8 @@ async function toolRouteBoard(a) {
   const [st, late] = await waitJob(jid, "/v1/jobs/" + jid, null, Number(a.timeout_s ?? 3900));
   if (late) return [{ job_id: jid, status: st.status }, `Job ${jid} is still ${st.status}; poll it with get_job.${st.queue_note ? " " + st.queue_note : ""}`];
   const res = summarize(st);
+  // EasyEDA: what the reader's checks found that may be lost or changed (the board was routed anyway); tell the human
+  if (findings) res.easyeda_conversion_findings = findings;
   if (st.status === "succeeded") {
     await saveResult(a, st, res, { prefix: "/v1/jobs" });
     if (a.delete_after_download ?? true) {
@@ -446,7 +451,7 @@ const OPTION_FIELDS = {
   minutes: { type: "integer", minimum: 1, maximum: 60, description: "Let Zap! keep trying for up to this many minutes (1 to 60) and return the best result; default is one round of a few minutes. Only when the human wants the best result and can wait; a job over 10 minutes may queue behind another one." },
 };
 const FILES = {
-  board_path: { type: "string", description: "Path to the placed .kicad_pcb (outline on Edge.Cuts; no tracks or vias unless keep_existing or strip_existing is true), or an EasyEDA Pro 3.x+ project with one PCB (.epro, .epro2, .eprj; sent alone, routed keeping its copper, returned in the same format). EasyEDA Standard .json and projects saved by Pro 2.x are refused for now." },
+  board_path: { type: "string", description: "Path to the placed .kicad_pcb (outline on Edge.Cuts; no tracks or vias unless keep_existing or strip_existing is true), or an EasyEDA file with one PCB: a Standard PCB document (.json) or a Pro 3.x+ project (.epro, .epro2, .eprj); sent alone, routed keeping its copper, returned in the same format. Projects saved by EasyEDA Pro 2.x are refused for now." },
   project_path: { type: "string", description: "Optional .kicad_pro with the design rules; default: the .kicad_pro next to the board if present." },
   rules_path: { type: "string", description: "Optional .kicad_dru; default: the .kicad_dru next to the board if present." },
   currents_path: { type: "string", description: "Optional JSON file of known currents: {\"nets\": {\"<net>\": {\"amps\": A}}, \"ambient_c\": C}. State supply nets, not ground." },
@@ -460,7 +465,7 @@ const FILES = {
     description: "jlc (default): never go below JLC's capability; nets that need finer copper are left unrouted and listed with the reason. board: follow the board's own minimums, for fabs finer than JLC; JLC findings are still reported." },
 };
 const WAIT_ARGS = {
-  out_path: { type: "string", description: "Where to save the routed board; default BOARD.routed.kicad_pcb (EasyEDA: BOARD.routed.epro / .epro2 / .eprj) next to the input (never overwrites the input)." },
+  out_path: { type: "string", description: "Where to save the routed board; default BOARD.routed.kicad_pcb (EasyEDA: BOARD.routed.json / .epro / .epro2 / .eprj) next to the input (never overwrites the input)." },
   wait: { type: "boolean", description: "Wait for the result (default true); false returns the job id at once." },
   timeout_s: { type: "number", description: "Stop waiting after this many seconds (default 3900); the job keeps running." },
 };
@@ -472,7 +477,7 @@ const TOOLS = [
     description: "Pre-flight check of a KiCad board with Zap! (seconds, no routing, uses no job quota): lists every problem that would stop the job (blockers) and what would weaken it (warnings), with references, positions and the KiCad fix. Run this first when an API key is set; it needs one. Without a key, use try_route_board, which runs the same checks when it submits.",
     inputSchema: { type: "object", properties: FILES, required: ["board_path"] } },
   { name: "route_board", fn: toolRouteBoard,
-    description: "Route a placed KiCad board with Zap!: pre-flight check, submit (uses one of the key's daily jobs), wait (seconds for small boards, up to 60 minutes), download BOARD.routed.kicad_pcb next to the input (with copies of BOARD.kicad_pro/.kicad_dru so KiCad uses the same rules; an EasyEDA Pro project comes back as BOARD.routed.epro / .epro2 / .eprj, the user's own file plus only Zap!'s copper; rebuild every copper pour in EasyEDA Pro before its DRC), delete the server copy. Returns the numbers to show the human; all are lower-is-better. The result needs a human review and KiCad DRC before fabrication.",
+    description: "Route a placed KiCad board with Zap!: pre-flight check, submit (uses one of the key's daily jobs), wait (seconds for small boards, up to 60 minutes), download BOARD.routed.kicad_pcb next to the input (with copies of BOARD.kicad_pro/.kicad_dru so KiCad uses the same rules; an EasyEDA file comes back as BOARD.routed.json / .epro / .epro2 / .eprj, the user's own file plus only Zap!'s copper; rebuild every copper pour in EasyEDA before its DRC; tell the human any easyeda_conversion_findings), delete the server copy. Returns the numbers to show the human; all are lower-is-better. The result needs a human review and KiCad DRC before fabrication.",
     inputSchema: { type: "object", properties: { ...FILES, out_path: WAIT_ARGS.out_path,
       check: { type: "boolean", description: "Run the pre-flight check first and do not submit on blockers (default true)." },
       wait: WAIT_ARGS.wait, timeout_s: WAIT_ARGS.timeout_s,
